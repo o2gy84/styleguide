@@ -1905,6 +1905,7 @@ def CheckForHeaderGuard(filename, clean_lines, error):
   ifndef_linenum = 0
   define = ''
   endif = ''
+  pragma = ''
   endif_linenum = 0
   for linenum, line in enumerate(raw_lines):
     linesplit = line.split()
@@ -1916,10 +1917,16 @@ def CheckForHeaderGuard(filename, clean_lines, error):
         ifndef_linenum = linenum
       if not define and linesplit[0] == '#define':
         define = linesplit[1]
+      if not pragma and linesplit[0] == '#pragma' and linesplit[1] == 'once':
+          pragma = '#pragma once'
+
     # find the last occurrence of #endif, save entire line
     if line.startswith('#endif'):
       endif = line
       endif_linenum = linenum
+
+  if pragma:
+    return
 
   if not ifndef or not define or ifndef != define:
     error(filename, 0, 'build/header_guard', 5,
@@ -2685,7 +2692,8 @@ class NestingState(object):
         # Check that access keywords are indented +1 space.  Skip this
         # check if the keywords are not preceded by whitespaces.
         indent = access_match.group(1)
-        if (len(indent) != classinfo.class_indent + 1 and
+        #if (len(indent) != classinfo.class_indent + 1 and
+        if (len(indent) != classinfo.class_indent and
             Match(r'^\s*$', indent)):
           if classinfo.is_struct:
             parent = 'struct ' + classinfo.name
@@ -2695,7 +2703,7 @@ class NestingState(object):
           if access_match.group(3):
             slots = access_match.group(3)
           error(filename, linenum, 'whitespace/indent', 3,
-                '%s%s: should be indented +1 space inside %s' % (
+                '%s%s: should be indented same as %s' % (
                     access_match.group(2), slots, parent))
 
     # Consume braces or semicolons from what's left of the line
@@ -3739,6 +3747,7 @@ def CheckBraces(filename, clean_lines, linenum, error):
 
   line = clean_lines.elided[linenum]        # get rid of comments and strings
 
+  """
   if Match(r'\s*{\s*$', line):
     # We allow an open brace to start a line in the case where someone is using
     # braces in a block to explicitly create a new scope, which is commonly used
@@ -3755,14 +3764,30 @@ def CheckBraces(filename, clean_lines, linenum, error):
         not (GetLineWidth(prevline) > _line_length - 2 and '[]' in prevline)):
       error(filename, linenum, 'whitespace/braces', 4,
             '{ should almost always be at the end of the previous line')
+  """
 
+  if Match(r'.*\S.*{\s*$', line):
+      error(filename, linenum, 'whitespace/braces', 4,
+            '{ should almost always be at the new line')
+
+  """
   # An else clause should be on the same line as the preceding closing brace.
   if Match(r'\s*else\b\s*(?:if\b|\{|$)', line):
     prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
     if Match(r'\s*}\s*$', prevline):
       error(filename, linenum, 'whitespace/newline', 4,
             'An else should appear on the same line as the preceding }')
+  """
 
+  # An else clause should NOT be on the same line as the preceding closing brace.
+  if Match(r'\s*}\s*else\b\s*if\s*', line):
+      error(filename, linenum, 'whitespace/newline', 4,
+            'An else should appear on the new line')
+  elif Match(r'\s*}\s*else\s*', line):
+      error(filename, linenum, 'whitespace/newline', 4,
+            'An else should appear on the new line')
+
+  """
   # If braces come on one side of an else, they should be on both.
   # However, we have to worry about "else if" that spans multiple lines!
   if Search(r'else if\s*\(', line):       # could be multi-line if
@@ -3778,6 +3803,20 @@ def CheckBraces(filename, clean_lines, linenum, error):
               'If an else has a brace on one side, it should have it on both')
   elif Search(r'}\s*else[^{]*$', line) or Match(r'[^}]*else\s*{', line):
     error(filename, linenum, 'readability/braces', 5,
+          'If an else has a brace on one side, it should have it on both')
+  """
+
+  # If braces come on one side of an else, they should be on both.
+  if Match(r'\s*else\s*', line):
+    prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
+    nextline = clean_lines.elided[linenum + 1]
+    if Match(r'\s*}\s*', prevline):
+      if not Match(r'\s*{\s*', nextline):
+        error(filename, linenum, 'readability/braces', 5,
+          'If an else has a brace on one side, it should have it on both')
+    else:
+      if Match(r'\s*{\s*', nextline):
+        error(filename, linenum, 'readability/braces', 5,
           'If an else has a brace on one side, it should have it on both')
 
   # Likewise, an else should never have the else clause on the same line
