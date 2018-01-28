@@ -3746,6 +3746,7 @@ def CheckBraces(filename, clean_lines, linenum, error):
   """
 
   line = clean_lines.elided[linenum]        # get rid of comments and strings
+  #raw_line = clean_lines.raw_lines[linenum])
 
   """
   if Match(r'\s*{\s*$', line):
@@ -3766,7 +3767,13 @@ def CheckBraces(filename, clean_lines, linenum, error):
             '{ should almost always be at the end of the previous line')
   """
 
+  # Exceptions are like:
+  #     1. vector<int> my_elements = { // some comment
+  #                                   1,
+  #                                   2};
+  #     2. ???
   if Match(r'.*\S.*{\s*$', line):
+    if not Match(r'.*=\s*{\s*$', line):
       error(filename, linenum, 'whitespace/braces', 4,
             '{ should almost always be at the new line')
 
@@ -3809,7 +3816,11 @@ def CheckBraces(filename, clean_lines, linenum, error):
   # If braces come on one side of an else, they should be on both.
   if Match(r'\s*else\s*', line):
     prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
-    nextline = clean_lines.elided[linenum + 1]
+    nextline = ''
+    try:
+      nextline = clean_lines.elided[linenum + 1]
+    except:
+      pass
     if Match(r'\s*}\s*', prevline):
       if not Match(r'\s*{\s*', nextline):
         error(filename, linenum, 'readability/braces', 5,
@@ -4779,6 +4790,8 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension,
 
   # Check for suspicious usage of "if" like
   # } if (a == b) {
+
+  # TODO: need search it into multiline variant !!!
   if Search(r'\}\s*if\s*\(', line):
     error(filename, linenum, 'readability/braces', 4,
           'Did you mean "else if"? If not, start a new line for "if".')
