@@ -3815,20 +3815,27 @@ def CheckBraces(filename, clean_lines, linenum, error):
 
   # If braces come on one side of an else, they should be on both.
   if Match(r'\s*else\s*', line):
-    prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
-    nextline = ''
-    try:
-      nextline = clean_lines.elided[linenum + 1]
-    except:
-      pass
-    if Match(r'\s*}\s*', prevline):
-      if not Match(r'\s*{\s*', nextline):
-        error(filename, linenum, 'readability/braces', 5,
-          'If an else has a brace on one side, it should have it on both')
-    else:
-      if Match(r'\s*{\s*', nextline):
-        error(filename, linenum, 'readability/braces', 5,
-          'If an else has a brace on one side, it should have it on both')
+    # find the ( after the if
+    pos = line.find('else if')
+    pos = line.find('(', pos)
+    if pos > 0:
+      (endline, endline_num, endpos) = CloseExpression(clean_lines, linenum, pos)
+
+      prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
+      nextline = ''
+      try:
+        nextline = clean_lines.elided[endline_num + 1]
+      except:
+        pass
+
+      if Match(r'\s*}\s*', prevline):
+        if not Match(r'\s*{\s*', nextline):
+          error(filename, linenum, 'readability/braces', 5,
+            'If an else has a brace on one side, it should have it on both')
+      else:
+        if Match(r'\s*{\s*', nextline):
+          error(filename, linenum, 'readability/braces', 5,
+            'If an else has a brace on one side, it should have it on both')
 
   # Likewise, an else should never have the else clause on the same line
   if Search(r'\belse [^\s{]', line) and not Search(r'\belse if\b', line):
@@ -3856,6 +3863,11 @@ def CheckBraces(filename, clean_lines, linenum, error):
       # This could be a multiline if condition, so find the end first.
       pos = if_match.end() - 1
       (endline, endlinenum, endpos) = CloseExpression(clean_lines, linenum, pos)
+
+    # it is possibly macro
+    if (Match(r'\s*\\', endline[endpos:])):
+        return
+
     # Check for an opening brace, either directly after the if or on the next
     # line. If found, this isn't a single-statement conditional.
     if (not Match(r'\s*{', endline[endpos:])
