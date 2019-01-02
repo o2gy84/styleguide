@@ -1055,9 +1055,27 @@ class _FunctionState(object):
   def CheckLocalVarsNames(self, error, filename, linenum, line):
     """Report if local var in function body has bad name"""
     if self.in_a_function:
-      if Match(r'\s+.+?\s+([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)\b.*', line):
-          error(filename, linenum, 'readability/local_var', 5,
-            'local variables in a function body should be named in snake_case code style.')
+      if '=' in line:
+        code_pieces = Match(r'\s+.*?\b(\w+)\s*=.*', line)
+        if code_pieces:
+            var_name = code_pieces.group(1)
+            if Match(r'([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)', var_name):
+                error(filename, linenum, 'readability/local_var', 5,
+                  'local variables in a function body should be named in snake_case code style.')
+      else:
+        var_name = ''
+        code_pieces = Match(r'\s+\w+\s+.*\b(\w+)\s*{.+};.*', line)
+        if code_pieces:
+            var_name = code_pieces.group(1)
+        else:
+            code_pieces = Match(r'\s+\w+\s+.*\b(\w+)\W*;.*', line)
+            if code_pieces:
+                var_name = code_pieces.group(1)
+
+        if var_name != '':
+            if Match(r'([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)', var_name):
+                error(filename, linenum, 'readability/local_var', 5,
+                  'local variables in a function body should be named in snake_case code style.')
 
   def Check(self, error, filename, linenum):
     """Report if too many lines in function body.
