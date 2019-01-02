@@ -1068,7 +1068,7 @@ class _FunctionState(object):
         if code_pieces:
             var_name = code_pieces.group(1)
         else:
-            code_pieces = Match(r'\s+\w+\s+.*?\b(\w+)\s*\(.*', line)
+            code_pieces = Match(r'\s+\w+\s+.*?\b(\w+)\s*\(.*;.*', line)
             if code_pieces:
                 var_name = code_pieces.group(1)
             else:
