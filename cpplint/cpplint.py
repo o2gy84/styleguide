@@ -219,6 +219,8 @@ _ERROR_CATEGORIES = [
     'readability/check',
     'readability/constructors',
     'readability/fn_size',
+    'readability/local_var',
+    'readability/func_name',
     'readability/inheritance',
     'readability/multiline_comment',
     'readability/multiline_string',
@@ -1049,6 +1051,13 @@ class _FunctionState(object):
     """Count line in current function body."""
     if self.in_a_function:
       self.lines_in_function += 1
+
+  def CheckLocalVarsNames(self, error, filename, linenum, line):
+    """Report if local var in function body has bad name"""
+    if self.in_a_function:
+      if Match(r'\s+.+?\s+([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)\b.*', line):
+          error(filename, linenum, 'readability/local_var', 5,
+            'local variables in a function body should be named in snake_case code style.')
 
   def Check(self, error, filename, linenum):
     """Report if too many lines in function body.
@@ -3045,6 +3054,28 @@ def CheckForNamespaceIndentation(filename, nesting_state, clean_lines, line,
                                     line, error)
 
 
+def CheckFreeFunctionName(error, filename, linenum, func_name):
+  """Check free function name. """
+  if func_name == '()':
+      return
+
+  if '::' in func_name:
+      # there is another checks for class members
+      pass
+      #if Match(r'.+?::([a-z0-9]+[A-Z]*[a-zA-Z0-9]*)\(.*', func_name):
+      #    pass
+      #else:
+      #    error(filename, linenum, 'readability/func_name', 5,
+      #        'member function should be named in mixedCase code style.')
+  else:
+      if Match(r'(^[A-Z].*)\(.*', func_name):
+          # should be compatible with unit tests
+          pass
+      elif Match(r'(.*[A-Z]+.*)\(.*', func_name):
+          error(filename, linenum, 'readability/func_name', 5,
+              'free function should be named in snake_case code style.')
+
+
 def CheckForFunctionLengths(filename, clean_lines, linenum,
                             function_state, error):
   """Reports for long function bodies.
@@ -3090,6 +3121,10 @@ def CheckForFunctionLengths(filename, clean_lines, linenum,
       joined_line += ' ' + start_line.lstrip()
       if Search(r'(;|})', start_line):  # Declarations and trivial functions
         body_found = True
+        if not 'typedef' in line:
+            function = Search(r'((\w|:)*)\(', line).group(1)
+            function += '()'
+            CheckFreeFunctionName(error, filename, linenum, function)
         break                              # ... ignore
       elif Search(r'{', start_line):
         body_found = True
@@ -3100,6 +3135,7 @@ def CheckForFunctionLengths(filename, clean_lines, linenum,
             function += parameter_regexp.group(1)
         else:
           function += '()'
+        CheckFreeFunctionName(error, filename, linenum, function)
         function_state.Begin(function)
         break
     if not body_found:
@@ -3111,6 +3147,7 @@ def CheckForFunctionLengths(filename, clean_lines, linenum,
     function_state.End()
   elif not Match(r'^\s*$', line):
     function_state.Count()  # Count non-blank/non-comment lines.
+    function_state.CheckLocalVarsNames(error, filename, linenum, line)
 
 
 _RE_PATTERN_TODO = re.compile(r'^//(\s*)TODO(\(.+?\))?:?(\s|$)?')
