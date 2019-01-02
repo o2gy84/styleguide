@@ -1068,9 +1068,13 @@ class _FunctionState(object):
         if code_pieces:
             var_name = code_pieces.group(1)
         else:
-            code_pieces = Match(r'\s+\w+\s+.*\b(\w+)\W*;.*', line)
+            code_pieces = Match(r'\s+\w+\s+.*?\b(\w+)\s*\(.*', line)
             if code_pieces:
                 var_name = code_pieces.group(1)
+            else:
+                code_pieces = Match(r'\s+\w+\s+.*\b(\w+)\W*;.*', line)
+                if code_pieces:
+                    var_name = code_pieces.group(1)
 
         if var_name != '':
             if Match(r'([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)', var_name):
