@@ -1055,7 +1055,7 @@ class _FunctionState(object):
   def CheckLocalVarsNames(self, error, filename, linenum, line):
     """Report if local var in function body has bad name"""
     if self.in_a_function:
-      if '=' in line:
+      if Match(r'.*[^=]=[^=].*', line):
         code_pieces = Match(r'\s+.*?\b(\w+)\s*=.*', line)
         if code_pieces:
             var_name = code_pieces.group(1)
@@ -1064,17 +1064,26 @@ class _FunctionState(object):
                   'local variables in a function body should be named in snake_case code style.')
       else:
         var_name = ''
+        prefix_name = ''
+        type_name = ''
         code_pieces = Match(r'\s+\w+\s+.*\b(\w+)\s*{.+};.*', line)
         if code_pieces:
             var_name = code_pieces.group(1)
         else:
-            code_pieces = Match(r'\s+\w+\s+.*?\b(\w+)\s*\(.*;.*', line)
+            code_pieces = Match(r'\s+(\w+)\s+(.*?)\b(\w+)\s*\(.*;.*', line)
             if code_pieces:
-                var_name = code_pieces.group(1)
+                type_name = code_pieces.group(1)
+                prefix_name = code_pieces.group(2)
+                var_name = code_pieces.group(3)
             else:
                 code_pieces = Match(r'\s+\w+\s+.*\b(\w+)\W*;.*', line)
                 if code_pieces:
                     var_name = code_pieces.group(1)
+
+        if prefix_name.endswith('->'):
+            return
+        if type_name == 'return':
+            return
 
         if var_name != '':
             if Match(r'([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)', var_name):
