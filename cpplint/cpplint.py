@@ -1066,9 +1066,10 @@ class _FunctionState(object):
         var_name = ''
         prefix_name = ''
         type_name = ''
-        code_pieces = Match(r'\s+\w+\s+.*\b(\w+)\s*{.+};.*', line)
+        code_pieces = Match(r'\s+(\w+)\s+.*\b(\w+)\s*{.+};.*', line)
         if code_pieces:
-            var_name = code_pieces.group(1)
+            type_name = code_pieces.group(1)
+            var_name = code_pieces.group(2)
         else:
             code_pieces = Match(r'\s+(\w+)\s+(.*?)\b(\w+)\s*\(.*;.*', line)
             if code_pieces:
@@ -1076,9 +1077,11 @@ class _FunctionState(object):
                 prefix_name = code_pieces.group(2)
                 var_name = code_pieces.group(3)
             else:
-                code_pieces = Match(r'\s+\w+\s+.*\b(\w+)\W*;.*', line)
+                code_pieces = Match(r'\s+(\w+)\s+(.*)\b(\w+)\W*;.*', line)
                 if code_pieces:
-                    var_name = code_pieces.group(1)
+                    type_name = code_pieces.group(1)
+                    prefix_name = code_pieces.group(2)
+                    var_name = code_pieces.group(3)
 
         if prefix_name.endswith('->'):
             return
