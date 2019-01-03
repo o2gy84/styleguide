@@ -1056,9 +1056,13 @@ class _FunctionState(object):
     """Report if local var in function body has bad name"""
     if self.in_a_function:
       if Match(r'.*[^=]=[^=].*', line):
-        code_pieces = Match(r'\s+.*?\b(\w+)\s*=.*', line)
+        prefix_name = ''
+        code_pieces = Match(r'\s+(.*?)\b(\w+)\s*=.*', line)
         if code_pieces:
-            var_name = code_pieces.group(1)
+            prefix_name = code_pieces.group(1)
+            var_name = code_pieces.group(2)
+            if prefix_name.endswith('->') or prefix_name.endswith('.'):
+                return
             if Match(r'([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)', var_name):
                 error(filename, linenum, 'readability/local_var', 5,
                   'local variables in a function body should be named in snake_case code style.')
@@ -1071,7 +1075,7 @@ class _FunctionState(object):
             type_name = code_pieces.group(1)
             var_name = code_pieces.group(2)
         else:
-            code_pieces = Match(r'\s+(\w+)\s+(.*?)\b(\w+)\s*\(.*;.*', line)
+            code_pieces = Match(r'\s+([\w:<>]+)\s+(.*?)\b(\w+)\s*\(.*;.*', line)
             if code_pieces:
                 type_name = code_pieces.group(1)
                 prefix_name = code_pieces.group(2)
