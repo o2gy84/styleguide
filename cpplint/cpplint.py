@@ -1063,6 +1063,8 @@ class _FunctionState(object):
             var_name = code_pieces.group(2)
             if prefix_name == '':
                 return
+            if prefix_name.startswith('const') and var_name.startswith('k'):
+                return
             if prefix_name.endswith('->') or prefix_name.endswith('.'):
                 return
             if Match(r'([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)', var_name):
@@ -1072,7 +1074,7 @@ class _FunctionState(object):
         var_name = ''
         prefix_name = ''
         type_name = ''
-        code_pieces = Match(r'\s+(\w+)\s+.*\b(\w+)\s*{.+};.*', line)
+        code_pieces = Match(r'\s+([\w:<>]+)\s+.*\b(\w+)\s*{.+};.*', line)
         if code_pieces:
             type_name = code_pieces.group(1)
             var_name = code_pieces.group(2)
@@ -1083,12 +1085,19 @@ class _FunctionState(object):
                 prefix_name = code_pieces.group(2)
                 var_name = code_pieces.group(3)
             else:
-                code_pieces = Match(r'\s+(\w+)\s+(.*)\b(\w+)\W*;.*', line)
+                code_pieces = Match(r'\s+([\w:<>]+)\s+.*\b(\w+)\s*\[.+\];.*', line)
                 if code_pieces:
                     type_name = code_pieces.group(1)
-                    prefix_name = code_pieces.group(2)
-                    var_name = code_pieces.group(3)
+                    var_name = code_pieces.group(2)
+                else:
+                    code_pieces = Match(r'\s+(\w+)\s+(.*)\b(\w+)\W*;.*', line)
+                    if code_pieces:
+                        type_name = code_pieces.group(1)
+                        prefix_name = code_pieces.group(2)
+                        var_name = code_pieces.group(3)
 
+        if type_name.startswith('const') and var_name.startswith('k'):
+            return
         if prefix_name.endswith('->') or prefix_name.endswith('.'):
             return
         if type_name == 'return':
