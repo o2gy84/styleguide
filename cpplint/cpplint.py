@@ -1074,23 +1074,27 @@ class _FunctionState(object):
         var_name = ''
         prefix_name = ''
         type_name = ''
-        code_pieces = Match(r'\s+([\w:<>]+)\s+.*\b(\w+)\s*{.+};.*', line)
+        code_pieces = Match(r'\s+([\w:<>]+)\s+.*\b(\w+)\s*{.+};.*', line)                   # std::vector<uint8_t> preprocessedFrame {1, 2, 3};
         if code_pieces:
             type_name = code_pieces.group(1)
             var_name = code_pieces.group(2)
         else:
-            code_pieces = Match(r'\s+([\w:<>]+)\s+(.*?)\b(\w+)\s*\(.*;.*', line)
+            code_pieces = Match(r'\s+([\w:<>]+)\s+(.*?)\b(\w+)\s*\(.*\)\s*{.*;.*}\s*', line) # uint32_t getBytes() { return bytes; }
+            if code_pieces:
+                return
+
+            code_pieces = Match(r'\s+([\w:<>]+)\s+(.*?)\b(\w+)\s*\(.*;.*', line)            # int badName(10);
             if code_pieces:
                 type_name = code_pieces.group(1)
                 prefix_name = code_pieces.group(2)
                 var_name = code_pieces.group(3)
             else:
-                code_pieces = Match(r'\s+([\w:<>]+)\s+.*\b(\w+)\s*\[.+\];.*', line)
+                code_pieces = Match(r'\s+([\w:<>]+)\s+.*\b(\w+)\s*\[.+\];.*', line)         # char badArray[10];
                 if code_pieces:
                     type_name = code_pieces.group(1)
                     var_name = code_pieces.group(2)
                 else:
-                    code_pieces = Match(r'\s+(\w+)\s+(.*)\b(\w+)\W*;.*', line)
+                    code_pieces = Match(r'\s+(\w+)\s+(.*)\b(\w+)\W*;.*', line)              # char badName;
                     if code_pieces:
                         type_name = code_pieces.group(1)
                         prefix_name = code_pieces.group(2)
