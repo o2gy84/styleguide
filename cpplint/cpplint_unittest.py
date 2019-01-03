@@ -5201,6 +5201,17 @@ class CheckForFunctionLengthsTest(CpplintTestBase):
         'void test() {\n     std::vector<uint8_t> preprocessedFrame {1, 2, 3};\n}',
         'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
 
+  def testFreeFunctionNames(self):
+    self.TestFunctionLengthsCheck('void test() {\n}', '')
+    self.TestFunctionLengthsCheck('void test_test() {\n}', '')
+    self.TestFunctionLengthsCheck('string EmptyString() {\nreturn ""; }', '')
+    self.TestFunctionLengthsCheck('typedef void Func(int x);', '')
+    self.TestFunctionLengthsCheck('void MyClass::test_snake_case() {}', '')
+
+    self.TestFunctionLengthsCheck(
+        'void testAbc() {\n}',
+        'free function should be named in snake_case code style.  [readability/func_name] [5]')
+
   def testFunctionLengthCheckDefinitionSeverity1PlusBlanks(self):
     error_level = 1
     error_lines = self.TriggerLines(error_level) + 1

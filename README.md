@@ -36,6 +36,21 @@ private:
     int m_;
 };
 ```
+  
+5) local variables should be named in snake_case:
+```
+    int abc_def;  // good
+    int abcDef;   // bad
+
+```
+  
+6) free functions should be named in snake_case:
+```
+    int test_test();  // good
+    int testTest();   // bad
+
+```
+
 
 ---
 
