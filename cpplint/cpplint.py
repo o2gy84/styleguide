@@ -1083,7 +1083,7 @@ class _FunctionState(object):
                     prefix_name = code_pieces.group(2)
                     var_name = code_pieces.group(3)
 
-        if prefix_name.endswith('->'):
+        if prefix_name.endswith('->') or prefix_name.endswith('.'):
             return
         if type_name == 'return':
             return
