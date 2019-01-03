@@ -5135,6 +5135,72 @@ class CheckForFunctionLengthsTest(CpplintTestBase):
   def testFunctionLengthCheckDefinitionAboveSeverity1(self):
     self.TestFunctionLengthCheckAboveErrorLevel(1)
 
+  def testVarsNames(self):
+    self.TestFunctionLengthsCheck('void test() {\n    int abc;\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    int abc_def;\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    v1   = _mm_loadu_ps(pVect1); pVect1 += 4;\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    while (pVect1 < pEnd3)\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    boost::asio::ip::tcp::socket::lowest_layer_type &sock = lowestLayer();\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    TarantoolConnectionHolder connection(*this, getImpl());\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    if (!color_map || !color_map->isOk())\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    return lowestLayer() == true;\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    return lowestLayer();\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    return lowestLayer().is_open();\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    if (!ec) m_Socket->makeConnected(ec);\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    return badName;\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    return badName{1, 2};\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    if (p.unpackBinString(content) == -1) return -1;\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    videod_settings.storageServers = libproperty::Config::impl()->get<std::map<std::string, std::string>>("storage_servers");\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    preprocessedFrame = std::vector<uint8_t>(4);\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    const uint16_t kLen(32);\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    const uint16_t kLen = 32;\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    char flen_str[kLen];\n}','')
+    self.TestFunctionLengthsCheck('void test() {\n    uint32_t getReceivedBytes() { return m_bytesCounter; }\n}','')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n    int abcA = 10;\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n    int abcDef;\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n   MyClass myClass();\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n  std::uniq_ptr<MyClass> myClass = std::make_unique();\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n  int abcA{10};\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n  int abcB {10};\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n    const float* pEnd1 = pVect1 + 16 * qty16; \n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n    int badName=(asd == 10);\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n    int badName = (asd == 10);\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n     std::vector<uint8_t> preprocessedFrame(in_frame.data().begin(), in_frame.data().end());\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n     std::vector<uint8_t> preprocessedFrame {1, 2, 3};\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
   def testFunctionLengthCheckDefinitionSeverity1PlusBlanks(self):
     error_level = 1
     error_lines = self.TriggerLines(error_level) + 1
