@@ -1061,6 +1061,8 @@ class _FunctionState(object):
         if code_pieces:
             prefix_name = code_pieces.group(1)
             var_name = code_pieces.group(2)
+            if prefix_name == '':
+                return
             if prefix_name.endswith('->') or prefix_name.endswith('.'):
                 return
             if Match(r'([a-z0-9]+[A-Z]+[a-zA-Z0-9]*)', var_name):
