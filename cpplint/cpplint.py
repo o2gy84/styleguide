@@ -3783,7 +3783,7 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
   line = clean_lines.lines[linenum]
   if Match(r'\s*(public|protected|private):', line):
       return
-  if Match(r'class\s+', line) or Match(r'struct\s+', line) or Match(r'{', line):
+  if Match(r'class\s+', line) or Match(r'struct\s+', line) or Match(r'{', line) or Match(r'\s+using\s+', line):
       return
   if len(line) == 0:
       return
