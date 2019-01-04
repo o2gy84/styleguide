@@ -219,6 +219,9 @@ _ERROR_CATEGORIES = [
     'readability/check',
     'readability/constructors',
     'readability/fn_size',
+    'readability/struct_member',
+    'readability/class_member',
+    'readability/class_method',
     'readability/local_var',
     'readability/func_name',
     'readability/inheritance',
@@ -1094,7 +1097,7 @@ class _FunctionState(object):
                     type_name = code_pieces.group(1)
                     var_name = code_pieces.group(2)
                 else:
-                    code_pieces = Match(r'\s+(\w+)\s+(.*)\b(\w+)\W*;.*', line)              # char badName;
+                    code_pieces = Match(r'\s+([\w:<>]+)\s+(.*)\b(\w+)\W*;.*', line)         # char badName;
                     if code_pieces:
                         type_name = code_pieces.group(1)
                         prefix_name = code_pieces.group(2)
@@ -3747,6 +3750,98 @@ def IsDecltype(clean_lines, linenum, column):
   return False
 
 
+def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
+  """Checks for class/struct members names
+
+  Args:
+    filename: The name of the current file.
+    clean_lines: A CleansedLines instance containing the file.
+    class_info: A _ClassInfo objects.
+    linenum: The number of the line to check.
+    error: The function to call with any errors found.
+  """
+
+  # allow use small classes like this: ???
+  # class Point { int x; int y }
+  # if (class_info.last_line - class_info.starting_linenum <= 24 or
+  #    linenum <= class_info.starting_linenum):
+  # return
+
+  # check for current line indent
+  indent_class_len = GetIndentLevel(clean_lines.lines[class_info.last_line])
+  indent_current_line_len = GetIndentLevel(clean_lines.lines[linenum])
+  indent_methods_len = 0
+  for i in range(class_info.last_line + 1, linenum):
+      if Match(r'(\s+)(.*?)\b(\w+)\s*\(', clean_lines.lines[i]):
+          indent_methods_len = GetIndentLevel(clean_lines.lines[i])
+          break
+
+  if indent_methods_len > indent_class_len and indent_current_line_len > indent_methods_len:
+      # possible it is function body inside a class
+      return
+
+  line = clean_lines.lines[linenum]
+  if Match(r'\s*(public|protected|private):', line):
+      return
+  if Match(r'class\s+', line) or Match(r'struct\s+', line) or Match(r'{', line):
+      return
+  if len(line) == 0:
+      return
+
+  is_function = True
+  var_name = ''
+  code_pieces = Match(r'\s+([\w:<>]+)\s+(.*?)\b(\w+)\s*\(.*;.*', line)
+  if code_pieces:
+      var_name = code_pieces.group(3)
+  else:
+      is_function = False
+      code_pieces = Match(r'\s+([\w:<>]+)\s+(.*)\b(\w+)\s*;.*', line)
+      if code_pieces:
+        var_name = code_pieces.group(3)
+
+  if var_name == '':
+      return
+
+  if not is_function and Match(r'.*\b(\w+)\s*\(.*', line):
+    # is ctor
+    return
+
+  if class_info.is_struct:
+    if not is_function and Match(r'[a-z0-9]+[A-Z]+[a-zA-Z0-9]*', var_name):
+      error(filename, linenum, 'readability/struct_member', 5,
+          'struct member should be named in snake_case code style.')
+    if not is_function and Match(r'^[A-Z].*', var_name):
+      error(filename, linenum, 'readability/struct_member', 5,
+          'struct member should be named in snake_case code style.')
+    return
+
+  # bellow only class checks
+
+  if is_function and Match(r'(^[A-Z].*).*', var_name):
+    # compatibility with unit test
+    # and also CTOR's
+    return
+
+  if is_function and not Match(r'^[a-z][a-zA-Z0-9]*$', var_name):
+    error(filename, linenum, 'readability/class_method', 5,
+          'class method should be named in mixedCase code style.')
+    return
+
+  if not is_function:
+    if var_name.startswith('m_'):
+        local_var_name = var_name[2:]
+        if not Match(r'^[a-z][a-zA-Z0-9]*$', local_var_name):
+            error(filename, linenum, 'readability/class_member', 5,
+                'class member should be named in m_mixedCase code style.')
+    else:
+        if var_name.endswith('_'):
+            # compatibility with unit tests
+            pass
+        else:
+            error(filename, linenum, 'readability/class_member', 5,
+                'class member name should start with "m_" prefix.')
+
+
 def CheckSectionSpacing(filename, clean_lines, class_info, linenum, error):
   """Checks for additional blank line issues related to sections.
 
@@ -4570,6 +4665,7 @@ def CheckStyle(filename, clean_lines, linenum, file_extension, nesting_state,
   CheckAltTokens(filename, clean_lines, linenum, error)
   classinfo = nesting_state.InnermostClass()
   if classinfo:
+    CheckClassOrStructNames(filename, clean_lines, classinfo, linenum, error)
     CheckSectionSpacing(filename, clean_lines, classinfo, linenum, error)
 
 

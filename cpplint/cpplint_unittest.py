@@ -699,6 +699,78 @@ class CpplintTest(CpplintTestBase):
     # with taking address of old-style casts.
     self.TestLint('auto x = implicit_cast<string &(*)(int)>(&foo);', '')
 
+  # Test methods names.
+  def testClassStructMethodsNames(self):
+    self.TestMultiLineLint(
+        """
+        class MyClass
+        {
+        public:
+            explicit MyClass(int);
+            MyClass();
+            MyClass(int a,
+                    int b,
+                    int c);
+            void func()
+            {
+                int local_var;
+            }
+            void MyTest();
+        private:
+            int m_x;
+            int m_myVar;
+        }""",
+        '')
+    self.TestMultiLineLint(
+        """
+        class MyClass
+        {
+        public:
+            void my_test();
+        }""",
+        'class method should be named in mixedCase code style.  [readability/class_method] [5]')
+    self.TestMultiLineLint(
+        """
+        class MyClass
+        {
+        public:
+            MyClass();
+        private:
+            int x;
+        }""",
+        'class member name should start with "m_" prefix.  [readability/class_member] [5]')
+    self.TestMultiLineLint(
+        """
+        class MyClass
+        {
+        private:
+            int m_X;
+        }""",
+        'class member should be named in m_mixedCase code style.  [readability/class_member] [5]')
+    self.TestMultiLineLint(
+        """
+        class MyClass
+        {
+        private:
+            int m_x_x;
+        }""",
+        'class member should be named in m_mixedCase code style.  [readability/class_member] [5]')
+    self.TestMultiLineLint(
+        """
+        struct point_t
+        {
+            int myX;
+        }""",
+        'struct member should be named in snake_case code style.  [readability/struct_member] [5]')
+    self.TestMultiLineLint(
+        """
+        struct point_t
+        {
+            int MyX;
+        }""",
+        'struct member should be named in snake_case code style.  [readability/struct_member] [5]')
+
+
   def testRuntimeSelfinit(self):
     self.TestLint(
         'Foo::Foo(Bar r, Bel l) : r_(r_), l_(l_) { }',
@@ -5191,6 +5263,10 @@ class CheckForFunctionLengthsTest(CpplintTestBase):
 
     self.TestFunctionLengthsCheck(
         'void test() {\n    int badName = (asd == 10);\n}',
+        'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
+
+    self.TestFunctionLengthsCheck(
+        'void test() {\n     std::vector<char> preprocessedFrame;\n}',
         'local variables in a function body should be named in snake_case code style.  [readability/local_var] [5]')
 
     self.TestFunctionLengthsCheck(
