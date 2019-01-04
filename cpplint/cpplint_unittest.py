@@ -725,6 +725,16 @@ class CpplintTest(CpplintTestBase):
         """
         class MyClass
         {
+        private:
+            int m_X = 10;
+            int m_X_1 = 10;
+            int m_X_2;
+        }""",
+        '')
+    self.TestMultiLineLint(
+        """
+        class MyClass
+        {
         public:
             void my_test();
         }""",

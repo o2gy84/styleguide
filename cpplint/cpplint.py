@@ -3795,9 +3795,14 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
       var_name = code_pieces.group(3)
   else:
       is_function = False
-      code_pieces = Match(r'\s+([\w:<>]+)\s+(.*)\b(\w+)\s*;.*', line)
-      if code_pieces:
-        var_name = code_pieces.group(3)
+      if Match(r'.*[^=]=[^=].*', line):
+        code_pieces = Match(r'\s+(.*?)\b(\w+)\s*=.*', line)
+        if code_pieces:
+            var_name = code_pieces.group(2)
+      else:
+          code_pieces = Match(r'\s+([\w:<>]+)\s+(.*)\b(\w+)\s*;.*', line)
+          if code_pieces:
+            var_name = code_pieces.group(3)
 
   if var_name == '':
       return
@@ -3831,8 +3836,12 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
     if var_name.startswith('m_'):
         local_var_name = var_name[2:]
         if not Match(r'^[A-Z][a-zA-Z0-9]*$', local_var_name):
-            error(filename, linenum, 'readability/class_member', 5,
-                'class member should be named in m_CamelCase code style.')
+            if Match(r'^[A-Z][a-zA-Z0-9]*_\d+$', local_var_name):
+                # exception for names like 'm_Q2_1' or 'm_Proto_2'
+                pass
+            else:
+                error(filename, linenum, 'readability/class_member', 5,
+                    'class member should be named in m_CamelCase code style.')
     else:
         if var_name.endswith('_'):
             # compatibility with unit tests
