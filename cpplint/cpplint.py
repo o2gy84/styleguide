@@ -3783,7 +3783,9 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
   line = clean_lines.lines[linenum]
   if Match(r'\s*(public|protected|private):', line):
       return
-  if Match(r'class\s+', line) or Match(r'struct\s+', line) or Match(r'{', line) or Match(r'\s+using\s+', line):
+  if Match(r'class\s+', line) or Match(r'struct\s+', line) or Match(r'{', line):
+      return
+  if Match(r'\s+using\s+', line) or Match(r'\s+typedef\s+', line):
       return
   if len(line) == 0:
       return
@@ -3799,6 +3801,8 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
         code_pieces = Match(r'\s+(.*?)\b(\w+)\s*=.*', line)
         if code_pieces:
             var_name = code_pieces.group(2)
+            if var_name == 'operator':
+                return
       else:
           code_pieces = Match(r'\s+([\w:<>]+)\s+(.*)\b(\w+)\s*;.*', line)
           if code_pieces:
@@ -3843,7 +3847,7 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
                 error(filename, linenum, 'readability/class_member', 5,
                     'class member should be named in m_CamelCase code style.')
     else:
-        if var_name.endswith('_'):
+        if var_name.endswith('_') or var_name.startswith('_'):
             # compatibility with unit tests
             pass
         else:
