@@ -58,7 +58,7 @@ struct my_struct_t
 }
 ```
 
-8) class member should be named in m_mixedCase,  
+8) class member should be named in m_CamelCase,  
 class method should be named in mixedCase:
 ```
 class MyClas
@@ -69,6 +69,7 @@ public:
 private:
     int m_TestTest;   // good
     int test_test;    // bad
+    int test;         // bad
 }
 ```
 
