@@ -3785,7 +3785,7 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
       return
   if Match(r'class\s+', line) or Match(r'struct\s+', line) or Match(r'{', line):
       return
-  if Match(r'\s+using\s+', line) or Match(r'\s+typedef\s+', line):
+  if Match(r'\s+using\s+', line) or Match(r'\s+typedef\s+', line) or Match(r'\s+struct\s+', line) or Match(r'\s+class\s+', line):
       return
   if len(line) == 0:
       return
