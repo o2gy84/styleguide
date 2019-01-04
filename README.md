@@ -41,14 +41,35 @@ private:
 ```
     int abc_def;  // good
     int abcDef;   // bad
-
 ```
   
 6) free functions should be named in snake_case:
 ```
     int test_test();  // good
     int testTest();   // bad
+```
 
+7) struct member should be named in snake_case:
+```
+struct my_struct_t
+{
+    int test_test;  // good
+    int testTest;   // bad
+}
+```
+
+8) class member should be named in m_mixedCase,  
+class method should be named in mixedCase:
+```
+class MyClas
+{
+public:
+    int test_test();  // bad
+    int testTest();   // good
+private:
+    int m_TestTest;   // good
+    int test_test;    // bad
+}
 ```
 
 
