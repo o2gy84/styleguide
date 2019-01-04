@@ -3830,9 +3830,9 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
   if not is_function:
     if var_name.startswith('m_'):
         local_var_name = var_name[2:]
-        if not Match(r'^[a-z][a-zA-Z0-9]*$', local_var_name):
+        if not Match(r'^[A-Z][a-zA-Z0-9]*$', local_var_name):
             error(filename, linenum, 'readability/class_member', 5,
-                'class member should be named in m_mixedCase code style.')
+                'class member should be named in m_CamelCase code style.')
     else:
         if var_name.endswith('_'):
             # compatibility with unit tests

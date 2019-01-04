@@ -717,8 +717,8 @@ class CpplintTest(CpplintTestBase):
             }
             void MyTest();
         private:
-            int m_x;
-            int m_myVar;
+            int m_X;
+            int m_MyVar;
         }""",
         '')
     self.TestMultiLineLint(
@@ -744,17 +744,17 @@ class CpplintTest(CpplintTestBase):
         class MyClass
         {
         private:
-            int m_X;
+            int m_x;
         }""",
-        'class member should be named in m_mixedCase code style.  [readability/class_member] [5]')
+        'class member should be named in m_CamelCase code style.  [readability/class_member] [5]')
     self.TestMultiLineLint(
         """
         class MyClass
         {
         private:
-            int m_x_x;
+            int m_X_x;
         }""",
-        'class member should be named in m_mixedCase code style.  [readability/class_member] [5]')
+        'class member should be named in m_CamelCase code style.  [readability/class_member] [5]')
     self.TestMultiLineLint(
         """
         struct point_t
