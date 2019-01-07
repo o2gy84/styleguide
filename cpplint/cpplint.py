@@ -3098,11 +3098,25 @@ def IsBlankLine(line):
 
 def CheckForNamespaceIndentation(filename, nesting_state, clean_lines, line,
                                  error):
+  # backup old condition
+  #is_namespace_indent_item = (
+      #len(nesting_state.stack) > 1 and
+      #nesting_state.stack[-1].check_namespace_indentation and
+      #isinstance(nesting_state.previous_stack_top, _NamespaceInfo) and
+      #nesting_state.previous_stack_top == nesting_state.stack[-2])
+
+  # my new condition
   is_namespace_indent_item = (
-      len(nesting_state.stack) > 1 and
+      len(nesting_state.stack) > 0 and
       nesting_state.stack[-1].check_namespace_indentation and
-      isinstance(nesting_state.previous_stack_top, _NamespaceInfo) and
-      nesting_state.previous_stack_top == nesting_state.stack[-2])
+      isinstance(nesting_state.previous_stack_top, _NamespaceInfo))
+
+  if is_namespace_indent_item:
+      num = nesting_state.previous_stack_top.starting_linenum
+      indent_namespace_len = GetIndentLevel(clean_lines.lines[num])
+      indent_cur_line_len = GetIndentLevel(clean_lines.lines[line])
+      if indent_namespace_len == indent_cur_line_len:
+          return
 
   if ShouldCheckNamespaceIndentation(nesting_state, is_namespace_indent_item,
                                      clean_lines.elided, line):
@@ -6020,7 +6034,8 @@ def ShouldCheckNamespaceIndentation(nesting_state, is_namespace_indent_item,
   if IsMacroDefinition(raw_lines_no_comments, linenum):
     return False
 
-  return IsBlockInNameSpace(nesting_state, is_forward_declaration)
+  #return IsBlockInNameSpace(nesting_state, is_forward_declaration)
+  return True
 
 
 # Call this method if the line is directly inside of a namespace.
