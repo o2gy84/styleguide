@@ -1105,6 +1105,13 @@ class _FunctionState(object):
                         prefix_name = code_pieces.group(2)
                         var_name = code_pieces.group(3)
 
+        if var_name == '':
+            new_line = ReplaceAll(r'\bconst\b', ' ', line)
+            code_pieces = Match(r'\s+for\s\(\s*([\w:<>]+)&?\s+&?\b(\w+)\s:\s.*', new_line)
+            if code_pieces:
+                type_name = code_pieces.group(1)
+                var_name = code_pieces.group(2)
+
         if type_name.startswith('const') and var_name.startswith('k'):
             return
         if prefix_name.endswith('->') or prefix_name.endswith('.'):
@@ -3199,7 +3206,7 @@ def CheckFunctionArgNames(error, filename, clean_lines, linenum, func_name):
                 'function argument name should be named in snake_case style')
             break
 
-def CheckFreeFunctionNames(error, filename, linenum, func_name):
+def CheckFreeFunctionNames(error, filename, clean_lines, linenum, func_name):
   """Check free function name. """
   if func_name == '()':
       return
@@ -3213,6 +3220,9 @@ def CheckFreeFunctionNames(error, filename, linenum, func_name):
       #    error(filename, linenum, 'readability/func_name', 5,
       #        'member function should be named in mixedCase code style.')
   else:
+      line = clean_lines.lines[linenum]
+      if line.endswith(');'):                # possible someting like: 'int g_Global(10);'
+        return
       if Match(r'(^[A-Z].*)\(.*', func_name):
           # should be compatible with unit tests
           pass
@@ -3269,7 +3279,7 @@ def CheckForFunctionLengths(filename, clean_lines, linenum,
         if not 'typedef' in line:
             function = Search(r'((\w|:)*)\(', line).group(1)
             function += '()'
-            CheckFreeFunctionNames(error, filename, linenum, function)
+            CheckFreeFunctionNames(error, filename, clean_lines, linenum, function)
             CheckFunctionArgNames(error, filename, clean_lines, linenum, function)
         break                              # ... ignore
       elif Search(r'{', start_line):
@@ -3281,7 +3291,7 @@ def CheckForFunctionLengths(filename, clean_lines, linenum,
             function += parameter_regexp.group(1)
         else:
           function += '()'
-        CheckFreeFunctionNames(error, filename, linenum, function)
+        CheckFreeFunctionNames(error, filename, clean_lines, linenum, function)
         CheckFunctionArgNames(error, filename, clean_lines, linenum, function)
         function_state.Begin(function)
         break
