@@ -224,6 +224,7 @@ _ERROR_CATEGORIES = [
     'readability/class_method',
     'readability/local_var',
     'readability/func_name',
+    'readability/file_name',
     'readability/inheritance',
     'readability/multiline_comment',
     'readability/multiline_string',
@@ -6368,6 +6369,10 @@ def ProcessFile(filename, vlevel, extra_check_functions=[]):
         "Skipping input '%s': Can't open for reading\n" % filename)
     _RestoreFilters()
     return
+
+  if Match(r'^[A-Z]', filename) or Match(r'.*[a-z0-9_][A-Z].*', filename):
+      Error(filename, 0, 'readability/file_name', 1,
+          'filename should be named in snake_case style')
 
   # Note, if no dot is found, this will give the entire filename as the ext.
   file_extension = filename[filename.rfind('.') + 1:]
