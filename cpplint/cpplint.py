@@ -3249,7 +3249,7 @@ def CheckForFunctionLengths(filename, clean_lines, linenum,
   joined_line = ''
 
   starting_func = False
-  regexp = r'(\w(\w|::|\*|\&|\s)*)\('  # decls * & space::name( ...
+  regexp = r'(\w(\w|<|>|::|\*|\&|\s)*)\('  # decls * & space::name( ...
   match_result = Match(regexp, line)
   if match_result:
     # If the name is all caps and underscores, figure it's a macro and
