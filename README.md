@@ -73,6 +73,35 @@ private:
 }
 ```
 
+9) should not indent code inside a namespace
+```
+namespace my_space
+{
+int testTest();       // good
+    int test_test();  // bad
+
+class Test            // good
+{
+};
+
+    class Test2       // bad
+    {
+
+    };
+
+}  // namespace my_space
+```
+
+10) TODO: func args
+
+11) filenames should be named in snake_case
+```
+my_test.hpp     // good
+my_test.cpp     // good
+MyTest.hpp      // bad
+MyTest.cpp      // bad
+```
+
 
 ---
 
