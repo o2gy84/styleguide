@@ -3118,6 +3118,20 @@ def CheckForNamespaceIndentation(filename, nesting_state, clean_lines, line,
       if indent_namespace_len == indent_cur_line_len:
           return
 
+      prev_indent_line = ''
+      for i in range(line, nesting_state.previous_stack_top.starting_linenum, -1):
+        prev_indent_len = GetIndentLevel(clean_lines.lines[i])
+        if prev_indent_len < indent_cur_line_len:
+            prev_indent_line = clean_lines.lines[i]
+            break
+
+      if prev_indent_line != '':
+          if Match(r'.+\(.*\).*{.*}.*', prev_indent_line):
+              pass
+          else:
+              if Match(r'.+\(', prev_indent_line):
+                  return
+
   if ShouldCheckNamespaceIndentation(nesting_state, is_namespace_indent_item,
                                      clean_lines.elided, line):
     CheckItemIndentationInNamespace(filename, clean_lines.elided,
