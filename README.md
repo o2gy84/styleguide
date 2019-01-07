@@ -73,7 +73,7 @@ private:
 }
 ```
 
-9) should not indent code inside a namespace
+9) should not indent code inside a namespace:
 ```
 namespace my_space
 {
@@ -92,9 +92,14 @@ class Test            // good
 }  // namespace my_space
 ```
 
-10) TODO: func args
+10) function argument name should be named in snake_case style:
+```
+void f(int my_test)     // good
+void f(int myTest)      // bad
+void f(int MyTest)      // bad
+```
 
-11) filenames should be named in snake_case
+11) filenames should be named in snake_case:
 ```
 my_test.hpp     // good
 my_test.cpp     // good

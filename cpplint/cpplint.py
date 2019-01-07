@@ -224,6 +224,7 @@ _ERROR_CATEGORIES = [
     'readability/class_method',
     'readability/local_var',
     'readability/func_name',
+    'readability/arg_name',
     'readability/file_name',
     'readability/inheritance',
     'readability/multiline_comment',
@@ -3139,7 +3140,66 @@ def CheckForNamespaceIndentation(filename, nesting_state, clean_lines, line,
                                     line, error)
 
 
-def CheckFreeFunctionName(error, filename, linenum, func_name):
+def ReplaceAllInCycle(pattern, rep, s):
+    while True:
+        new_s = ReplaceAll(pattern, rep, s)
+        if new_s == s:
+            return new_s
+        s = new_s
+
+
+def CheckFunctionArgNames(error, filename, clean_lines, linenum, func_name):
+    """Check function arguments names. """
+    if func_name == '()':
+        return
+
+    line = clean_lines.lines[linenum]
+    lines = line
+
+    if ')' in line:
+        pass
+    else:
+        counter = 0
+        while True:
+            try:
+                counter = counter + 1
+                lines = lines + clean_lines.lines[linenum + counter]
+                if ')' in lines:
+                    break
+            except:
+                return
+
+    args = ''
+    pieces = Match(r'.*?\((.*)\).*', lines)
+    if pieces:
+        args = pieces.group(1)
+
+    if args == '': return
+
+    args = ReplaceAll(r'\bconst\b', ' ', args)
+    parts = args.split(',')
+    for p in parts:
+        p = ReplaceAll(r'^\s*', '', p)
+        p = ReplaceAll(r'\s*$', '', p)
+        p = ReplaceAllInCycle(r'\s\s', ' ', p)
+        p = ReplaceAllInCycle(r'  ', ' ', p)
+
+        if '(' in p or ')' in p:
+            continue
+
+        to_check = p.split(' ')
+
+        size = len(to_check)
+        if size <= 1:
+            continue
+        name = to_check[size - 1]
+
+        if Match(r'^[A-Z]', name) or Match(r'.*[a-z0-9_][A-Z].*', name):
+            error(filename, linenum, 'readability/arg_name', 5,
+                'function argument name should be named in snake_case style')
+            break
+
+def CheckFreeFunctionNames(error, filename, linenum, func_name):
   """Check free function name. """
   if func_name == '()':
       return
@@ -3209,7 +3269,8 @@ def CheckForFunctionLengths(filename, clean_lines, linenum,
         if not 'typedef' in line:
             function = Search(r'((\w|:)*)\(', line).group(1)
             function += '()'
-            CheckFreeFunctionName(error, filename, linenum, function)
+            CheckFreeFunctionNames(error, filename, linenum, function)
+            CheckFunctionArgNames(error, filename, clean_lines, linenum, function)
         break                              # ... ignore
       elif Search(r'{', start_line):
         body_found = True
@@ -3220,7 +3281,8 @@ def CheckForFunctionLengths(filename, clean_lines, linenum,
             function += parameter_regexp.group(1)
         else:
           function += '()'
-        CheckFreeFunctionName(error, filename, linenum, function)
+        CheckFreeFunctionNames(error, filename, linenum, function)
+        CheckFunctionArgNames(error, filename, clean_lines, linenum, function)
         function_state.Begin(function)
         break
     if not body_found:
