@@ -1116,7 +1116,7 @@ class _FunctionState(object):
             return
         if prefix_name.endswith('->') or prefix_name.endswith('.'):
             return
-        if type_name == 'return':
+        if type_name == 'return' or type_name == 'case':
             return
 
         if var_name != '':
@@ -3887,6 +3887,8 @@ def CheckClassOrStructNames(filename, clean_lines, class_info, linenum, error):
   if Match(r'class\s+', line) or Match(r'struct\s+', line) or Match(r'{', line):
       return
   if Match(r'\s+using\s+', line) or Match(r'\s+typedef\s+', line) or Match(r'\s+struct\s+', line) or Match(r'\s+class\s+', line):
+      return
+  if Match(r'\s*\w+\s+operator\b.*\(', line):
       return
   if len(line) == 0:
       return
